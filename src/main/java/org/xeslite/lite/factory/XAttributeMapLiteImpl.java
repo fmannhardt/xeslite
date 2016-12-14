@@ -26,11 +26,11 @@ public final class XAttributeMapLiteImpl extends ForwardingMap<String, XAttribut
 	}
 
 	private Map<String, XAttribute> createInternalMap() {
-		return new Object2ObjectOpenHashMap<>();
+		return new Object2ObjectOpenHashMap<>(4);
 	}
 
 	private Map<String, XAttribute> createInternalMap(int initialSize) {
-		return new Object2ObjectOpenHashMap<>(initialSize, 0.6f);
+		return new Object2ObjectOpenHashMap<>(initialSize);
 	}
 
 	@Override
