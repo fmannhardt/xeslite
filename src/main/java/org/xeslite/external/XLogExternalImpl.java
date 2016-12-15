@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.deckfour.xes.classification.XEventClassifier;
@@ -16,15 +17,17 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.model.XVisitor;
 import org.deckfour.xes.model.impl.XAttributeMapImpl;
+import org.xeslite.XLogMetadata;
+import org.xeslite.common.XUtils;
 
 import com.google.common.collect.ForwardingList;
 import com.google.common.collect.ImmutableList;
 
-final class XLogExternalImpl extends ForwardingList<XTrace> implements XLog {
+final class XLogExternalImpl extends ForwardingList<XTrace> implements XLog, XLogMetadata {
 
-	private ExternalStore store;
+	private final ExternalStore store;
 
-	private List<XTrace> traces;
+	private final List<XTrace> traces;
 
 	private XAttributeMap attributes;
 
@@ -78,7 +81,7 @@ final class XLogExternalImpl extends ForwardingList<XTrace> implements XLog {
 		this.closeStoreOnFinalize = closeStoreOnFinalize;
 		this.traces = new ArrayList<>(events);
 		if (attributeMap != null) {
-			this.attributes = attributeMap;	
+			this.attributes = attributeMap;
 		} else {
 			this.attributes = new XAttributeMapImpl();
 		}
@@ -252,6 +255,20 @@ final class XLogExternalImpl extends ForwardingList<XTrace> implements XLog {
 
 	protected List<XTrace> delegate() {
 		return traces;
+	}
+
+	public ExternalStore getStore() {
+		return store;
+	}
+
+	public Map<String, Class<?>> getAttributeTypes() {
+		if (store instanceof InMemoryStore) {
+			return ((InMemoryStore) store).getAttributeTypes();
+		} else {
+			Map<String, Class<?>> eventAttributeTypes = XUtils.getEventAttributeTypes(this);
+			eventAttributeTypes.putAll(XUtils.getTraceAttributeTypes(this));
+			return eventAttributeTypes;
+		}
 	}
 
 }

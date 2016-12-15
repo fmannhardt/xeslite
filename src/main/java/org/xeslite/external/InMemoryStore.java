@@ -4,8 +4,11 @@ import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -1297,6 +1300,32 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 			}
 		}
 
+		public Map<Integer, Class<?>> getAttributeTypes() {
+			Map<Integer, Class<?>> attributeTypes = new HashMap<>();
+			for (AttributeStorage storage: store) {
+				attributeTypes.put(storage.getAttributeKey(), convertType(storage.getType()));
+			}
+			return attributeTypes;
+		}
+
+		private Class<?> convertType(Class<? extends XAttribute> type) {
+			if (XAttributeLiteral.class.isAssignableFrom(type)) {
+				return String.class;
+			} else if (XAttributeBoolean.class.isAssignableFrom(type)) {
+				return Boolean.class;
+			} else if (XAttributeContinuous.class.isAssignableFrom(type)) {
+				return Double.class;
+			} else if (XAttributeDiscrete.class.isAssignableFrom(type)) {
+				return Long.class;
+			} else if (XAttributeTimestamp.class.isAssignableFrom(type)) {
+				return Date.class;
+			} else if (XAttributeID.class.isAssignableFrom(type)) {
+				return XID.class;
+			} else {
+				throw new IllegalArgumentException("Unexpected attribute type!");
+			}
+		}
+
 	}
 
 	interface AttributeStore<V> {
@@ -1328,6 +1357,8 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 		void stopCompression();
 
 		void trimToSize();
+
+		Map<Integer, Class<?>> getAttributeTypes();
 
 	}
 
@@ -1475,6 +1506,15 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 	@Override
 	public XLog loadLogStructure(XFactoryExternalStore factory) {
 		throw new UnsupportedOperationException();
+	}
+
+	public Map<String, Class<?>> getAttributeTypes() {
+		Map<Integer, Class<?>> attributeTypes = store.getAttributeTypes();
+		Map<String, Class<?>> attributeTypesWithKey = new HashMap<>();
+		for (Entry<Integer, Class<?>> entry: attributeTypes.entrySet()) {
+			attributeTypesWithKey.put(keyPool.getValue(entry.getKey()), entry.getValue());
+		}
+		return attributeTypesWithKey;
 	}
 
 }
