@@ -8,6 +8,7 @@ import org.deckfour.xes.model.XAttributeMap;
 
 import com.google.common.collect.ForwardingMap;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 public final class XAttributeMapLiteImpl extends ForwardingMap<String, XAttribute>
@@ -26,11 +27,11 @@ public final class XAttributeMapLiteImpl extends ForwardingMap<String, XAttribut
 	}
 
 	private Map<String, XAttribute> createInternalMap() {
-		return new Object2ObjectOpenHashMap<>(4);
+		return new Object2ObjectArrayMap<>(4);
 	}
 
 	private Map<String, XAttribute> createInternalMap(int initialSize) {
-		return new Object2ObjectOpenHashMap<>(initialSize);
+		return new Object2ObjectArrayMap<>(initialSize);
 	}
 
 	@Override
