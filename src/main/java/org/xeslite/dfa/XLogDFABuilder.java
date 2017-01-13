@@ -15,8 +15,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset.Entry;
 import com.google.common.collect.TreeMultiset;
 
-import eu.danieldk.dictomaton.DictionaryBuilder;
 import eu.danieldk.dictomaton.DictionaryBuilderException;
+import eu.danieldk.dictomaton.DictionaryBuilderIterative;
 import eu.danieldk.dictomaton.PerfectHashDictionary;
 
 public class XLogDFABuilder {
@@ -70,7 +70,7 @@ public class XLogDFABuilder {
 	public XLogDFA build() {
 		try {
 
-			DictionaryBuilder builder = new DictionaryBuilder();
+			DictionaryBuilderIterative builder = new DictionaryBuilderIterative();
 
 			for (Entry<String> entry : sortingMultiset.entrySet()) {
 				builder.add(entry.getElement());

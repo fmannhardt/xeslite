@@ -38,7 +38,7 @@ import org.junit.Before;
 
 public abstract class XesLiteBaseTestAbstract {
 
-	protected static final int TEST_SIZE = 10000;
+	protected static final int TEST_SIZE = 1000;
 
 	private static final int RANDOM_POOL_SIZE = 65536;
 	private static final int EVENT_POOL_SIZE = 32;

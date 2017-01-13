@@ -11,6 +11,12 @@ import org.deckfour.xes.model.XAttributeDiscrete;
 import org.deckfour.xes.model.XAttributeLiteral;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XAttributeTimestamp;
+import org.xeslite.external.AttributeInfo;
+import org.xeslite.external.StringPool;
+import org.xeslite.external.XAttributeBooleanExternalImpl;
+import org.xeslite.external.XAttributeDiscreteExternalImpl;
+import org.xeslite.external.XAttributeLiteralExternalImpl;
+import org.xeslite.external.XAttributeTimestampExternalImpl;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
@@ -128,19 +134,24 @@ class XEventCachingExternalImpl extends XEventBareExternalImpl implements Attrib
 			long value = getOriginalCacheValue(cacheIndex);
 			if (value != -1) {
 				StringPool keyPool = getStore().getAttributeKeyPool();
-				if (info.getType() == XAttributeLiteral.class) {
-					StringPool literalPool = getStore().getLiteralPool();
-					return new XAttributeLiteralExternalImpl(keyPool.getIndex(info.getKey()),
-							literalPool.getValue((int) value), info.getExtension(), getStore(), this);
-				} else if (info.getType() == XAttributeTimestamp.class) {
-					return new XAttributeTimestampExternalImpl(keyPool.getIndex(info.getKey()), value, info.getExtension(),
-							getStore(), this);
-				} else if (info.getType() == XAttributeDiscrete.class) {
-					return new XAttributeDiscreteExternalImpl(keyPool.getIndex(info.getKey()), value, info.getExtension(),
-							getStore(), this);
-				} else if (info.getType() == XAttributeBoolean.class) {
-					return new XAttributeBooleanExternalImpl(keyPool.getIndex(info.getKey()), (value == 1 ? true : false),
-							info.getExtension(), getStore(), this);
+				Integer index = keyPool.getIndex(info.getKey());
+				if (index != null) {
+					if (info.getType() == XAttributeLiteral.class) {
+						StringPool literalPool = getStore().getLiteralPool();
+						return new XAttributeLiteralExternalImpl(index,
+								literalPool.getValue((int) value), info.getExtension(), getStore(), this);
+					} else if (info.getType() == XAttributeTimestamp.class) {
+						return new XAttributeTimestampExternalImpl(index, value, info.getExtension(),
+								getStore(), this);
+					} else if (info.getType() == XAttributeDiscrete.class) {
+						return new XAttributeDiscreteExternalImpl(index, value, info.getExtension(),
+								getStore(), this);
+					} else if (info.getType() == XAttributeBoolean.class) {
+						return new XAttributeBooleanExternalImpl(index, (value == 1 ? true : false),
+								info.getExtension(), getStore(), this);
+					}
+				} else {
+					return null;
 				}
 			}
 		}

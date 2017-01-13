@@ -328,7 +328,12 @@ public final class XLogDFAXmlParser {
 		}
 
 		XLogDFA dfaLog = builder.build();
-		dfaLog.setName(XUtils.getConceptName(currentLog));
+		String logName = XUtils.getConceptName(currentLog);
+		if (logName == null) {
+			dfaLog.setName("Unamed Log");
+		} else {
+			dfaLog.setName(logName);	
+		}
 		return dfaLog;
 	}
 

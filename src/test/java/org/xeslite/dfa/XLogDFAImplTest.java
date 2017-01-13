@@ -2,9 +2,6 @@ package org.xeslite.dfa;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-
 import org.deckfour.xes.factory.XFactoryNaiveImpl;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;

@@ -1055,8 +1055,6 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 			if (a instanceof XAttributeLiteral) {
 				return ((XAttributeLiteral) a).getValue();
 			} else {
-				System.err.println("Inconsistent attribute " + a.getKey() + ": " + a.getClass().getSimpleName()
-						+ " instead of expected " + XAttributeLiteral.class.getSimpleName());
 				return a.toString();
 			}
 		}
@@ -1067,8 +1065,6 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 			} else if (a instanceof XAttributeDiscrete) {
 				return ((XAttributeDiscrete) a).getValue();
 			} else if (a instanceof XAttributeContinuous) {
-				System.err.println("Inconsistent attribute " + a.getKey() + ": " + a.getClass().getSimpleName()
-						+ " instead of expected " + XAttributeDiscrete.class.getSimpleName());
 				return (long) ((XAttributeContinuous) a).getValue();
 			} else {
 				throw new XESLiteException(
@@ -1080,8 +1076,6 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 			if (a instanceof XAttributeContinuous) {
 				return ((XAttributeContinuous) a).getValue();
 			} else {
-				System.err.println("Inconsistent attribute " + a.getKey() + ": " + a.getClass().getSimpleName()
-						+ " instead of expected " + XAttributeContinuous.class.getSimpleName());
 				if (a instanceof XAttributeTimestamp) {
 					return ((XAttributeTimestamp) a).getValueMillis();
 				} else if (a instanceof XAttributeDiscrete) {
