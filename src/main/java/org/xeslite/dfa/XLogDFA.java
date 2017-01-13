@@ -2,6 +2,7 @@ package org.xeslite.dfa;
 
 import java.util.AbstractList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.deckfour.xes.classification.XEventClassifier;
@@ -315,6 +316,17 @@ public final class XLogDFA extends AbstractList<XTrace> implements XLog {
 	// Mutation not allowed
 	public void setAttributes(XAttributeMap attributes) {
 		throw new UnsupportedOperationException();
+	}
+	
+	public String toDot() {
+		//TODO subclass Dictionary instead of these replacements
+		String dot = dictionary.toDot();
+		for (Entry<String, Character> entry: eventClasses.entrySet()) {
+			dot = dot.replaceAll('"'+String.valueOf(entry.getValue()), "\""+ entry.getKey());
+		}
+		return dot.replace("digraph G {", "digraph G {\n"
+				+ "rankdir=LR;\n"
+				+ "node [shape=\"circle\"];\n");
 	}
 
 }
