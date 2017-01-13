@@ -15,7 +15,7 @@ import org.xeslite.common.XESLiteException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-public final class MapDBDatabaseImpl implements MapDBDatabase {
+public class MapDBDatabaseImpl implements MapDBDatabase {
 
 	private static final int SIZE_INCREMENT = 4 * 1024 * 1024;
 	/**

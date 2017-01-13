@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.xeslite</groupId>
 	<artifactId>xeslite</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>XESLite</name>
 	<url>https://github.com/fmannhardt/xeslite</url>
 	<description>An alternative implementations of the XES standard for event logs.</description>
