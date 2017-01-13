@@ -25,18 +25,24 @@ public class XLogDFABuilder {
 	private final BiMap<String, Character> eventClasses = HashBiMap.create();
 
 	private final XEventClassifier classifier;
+	private final boolean stateSuffixes;
 
 	public XLogDFABuilder() {
-		this(new XEventNameClassifier());
+		this(true);
 	}
 
-	public XLogDFABuilder(XEventClassifier classifier) {
+	public XLogDFABuilder(boolean stateSuffixes) {
+		this(new XEventNameClassifier(), stateSuffixes);
+	}
+
+	public XLogDFABuilder(XEventClassifier classifier, boolean stateSuffixes) {
 		super();
 		this.classifier = classifier;
+		this.stateSuffixes = stateSuffixes;
 	}
-	
+
 	public void addLog(XLog log) {
-		for (XTrace t: log) {
+		for (XTrace t : log) {
 			addTrace(t);
 		}
 	}
@@ -61,7 +67,7 @@ public class XLogDFABuilder {
 	private int addIdentity(String identity) {
 		Character index = eventClasses.get(identity);
 		if (index == null) {
-			index = Character.valueOf((char)eventClasses.size()); // limit unsigned 16-bit integer 
+			index = Character.valueOf((char) eventClasses.size());
 			eventClasses.put(identity, index);
 		}
 		return index;
@@ -75,11 +81,11 @@ public class XLogDFABuilder {
 			for (Entry<String> entry : sortingMultiset.entrySet()) {
 				builder.add(entry.getElement());
 			}
-			
-			PerfectHashDictionary hashDictionary = builder.buildPerfectHash();
-			
+
+			PerfectHashDictionary hashDictionary = builder.buildPerfectHash(stateSuffixes);
+
 			int totalCount = 0;
-			
+
 			int[] frequencies = new int[sortingMultiset.elementSet().size()];
 			for (String trace : hashDictionary) {
 				int index = hashDictionary.number(trace);

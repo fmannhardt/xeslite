@@ -46,7 +46,7 @@ import com.google.common.collect.Interners;
  * @author F. Mannhardt
  * 
  */
-public final class XFactoryLiteImpl implements XFactory {
+public class XFactoryLiteImpl implements XFactory {
 
 	public static void register() {
 		XFactoryRegistry.instance().register(new XFactoryLiteImpl());
