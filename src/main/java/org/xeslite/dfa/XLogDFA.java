@@ -31,7 +31,7 @@ import com.google.common.primitives.Longs;
 
 import eu.danieldk.dictomaton.PerfectHashDictionary;
 
-final class XLogDFA extends AbstractList<XTrace> implements XLog {
+public final class XLogDFA extends AbstractList<XTrace> implements XLog {
 
 	private static final class TraceEventId extends XID {
 
