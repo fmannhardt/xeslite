@@ -928,6 +928,18 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 		protected ExternalAttribute retrieveValue(long objectKey, AttributeStorage storage) {
 			Class<? extends XAttribute> type = storage.getType();
 			Volume vol = storage.getVolume();
+			ExternalAttribute rawAttribute = retrieveRawValue(objectKey, storage, type, vol);
+			if (vol.hasNested(objectKey)) {
+				// retrieve external id of the nested attributes
+				AttributeStorage nestedStorage = nestedStore.getStorage(storage.getAttributeKey());
+				Volume nestedVol = nestedStorage.getVolume();
+				rawAttribute.setExternalId(nestedVol.getLong(objectKey));
+			}
+			return rawAttribute;
+		}
+
+		private ExternalAttribute retrieveRawValue(long objectKey, AttributeStorage storage,
+				Class<? extends XAttribute> type, Volume vol) {
 			if (XAttributeLiteral.class.isAssignableFrom(type)) {
 				return new XAttributeLiteralExternalImpl(storage.getAttributeKey(),
 						literalPool.getValue(vol.getInt(objectKey)), storage.getExtension(), null, null);
@@ -1296,7 +1308,7 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 
 		public Map<Integer, Class<?>> getAttributeTypes() {
 			Map<Integer, Class<?>> attributeTypes = new HashMap<>();
-			for (AttributeStorage storage: store) {
+			for (AttributeStorage storage : store) {
 				attributeTypes.put(storage.getAttributeKey(), convertType(storage.getType()));
 			}
 			return attributeTypes;
@@ -1484,7 +1496,7 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 	@Override
 	public final void commit() {
 		getAttributeStore().trimToSize();
-		getAttributeStore().startCompression();		
+		getAttributeStore().startCompression();
 	}
 
 	@Override
@@ -1505,7 +1517,7 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 	public Map<String, Class<?>> getAttributeTypes() {
 		Map<Integer, Class<?>> attributeTypes = store.getAttributeTypes();
 		Map<String, Class<?>> attributeTypesWithKey = new HashMap<>();
-		for (Entry<Integer, Class<?>> entry: attributeTypes.entrySet()) {
+		for (Entry<Integer, Class<?>> entry : attributeTypes.entrySet()) {
 			attributeTypesWithKey.put(keyPool.getValue(entry.getKey()), entry.getValue());
 		}
 		return attributeTypesWithKey;
