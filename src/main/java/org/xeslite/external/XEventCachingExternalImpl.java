@@ -11,12 +11,7 @@ import org.deckfour.xes.model.XAttributeDiscrete;
 import org.deckfour.xes.model.XAttributeLiteral;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XAttributeTimestamp;
-import org.xeslite.external.AttributeInfo;
-import org.xeslite.external.StringPool;
-import org.xeslite.external.XAttributeBooleanExternalImpl;
-import org.xeslite.external.XAttributeDiscreteExternalImpl;
-import org.xeslite.external.XAttributeLiteralExternalImpl;
-import org.xeslite.external.XAttributeTimestampExternalImpl;
+import org.xeslite.common.XESLiteException;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
@@ -134,7 +129,7 @@ class XEventCachingExternalImpl extends XEventBareExternalImpl implements Attrib
 			long value = getOriginalCacheValue(cacheIndex);
 			if (value != -1) {
 				StringPool keyPool = getStore().getAttributeKeyPool();
-				Integer index = keyPool.getIndex(info.getKey());
+				Integer index = keyPool.put(info.getKey());
 				if (index != null) {
 					if (info.getType() == XAttributeLiteral.class) {
 						StringPool literalPool = getStore().getLiteralPool();
@@ -151,7 +146,7 @@ class XEventCachingExternalImpl extends XEventBareExternalImpl implements Attrib
 								info.getExtension(), getStore(), this);
 					}
 				} else {
-					return null;
+					throw new XESLiteException("Invalid key "+ index);
 				}
 			}
 		}
