@@ -26,7 +26,6 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.model.impl.XAttributeMapImpl;
 import org.xeslite.external.MapDBStore.Builder;
-import org.xeslite.external.XFactoryExternalStore.InMemoryStoreImpl;
 
 import com.google.common.collect.ImmutableList;
 
