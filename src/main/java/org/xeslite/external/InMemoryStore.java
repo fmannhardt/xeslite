@@ -1369,7 +1369,7 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 	}
 
 	private static final int BLOCK_SIZE = 16384;
-	private static final int INITITAL_BLOCK_COUNT = 16;
+	private static final int INITITAL_BLOCK_COUNT = 8;
 
 	private final AttributeStore<ExternalAttribute> store;
 

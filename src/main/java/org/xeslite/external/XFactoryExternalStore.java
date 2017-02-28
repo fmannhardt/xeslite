@@ -70,8 +70,9 @@ public abstract class XFactoryExternalStore implements XFactory {
 				XFactoryRegistry.instance().register(new MapDBDiskImpl());
 			}
 		}
-
-		private final ExternalStore attributeStore;
+		
+		private final Builder dbBuilder;		
+		private ExternalStore attributeStore;
 
 		public MapDBDiskImpl() {
 			this(new MapDBStore.Builder());
@@ -83,17 +84,22 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		public MapDBDiskImpl(MapDBStore.Builder dbBuilder) {
 			super();
-			attributeStore = dbBuilder.build();
+			this.dbBuilder = dbBuilder;			
 		}
 
 		@Override
-		protected final ExternalStore getStore() {
-			return attributeStore;
+		protected synchronized final ExternalStore getStore() {
+			if (attributeStore != null) {
+				return attributeStore;	
+			} else {
+				attributeStore = dbBuilder.build();
+				return attributeStore;
+			}			
 		}
 
 		@Override
 		public String getName() {
-			return "XESLite: MapDB Optimized for speed";
+			return "XESLite: MapDB (with Cache)";
 		}
 
 		@Override
@@ -133,7 +139,7 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		@Override
 		public String getName() {
-			return "XESLite: MapDB Optimized for memory";
+			return "XESLite: MapDB (without Cache)";
 		}
 
 		@Override
@@ -191,7 +197,7 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		@Override
 		public String getName() {
-			return "XESLite: MapDB Optimized for speed & sequential access";
+			return "XESLite: MapDB (Compressed, Sequential)";
 		}
 
 		@Override
