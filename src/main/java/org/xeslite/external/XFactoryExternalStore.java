@@ -26,6 +26,7 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.model.impl.XAttributeMapImpl;
 import org.xeslite.external.MapDBStore.Builder;
+import org.xeslite.external.XFactoryExternalStore.InMemoryStoreImpl;
 
 import com.google.common.collect.ImmutableList;
 
@@ -306,6 +307,12 @@ public abstract class XFactoryExternalStore implements XFactory {
 	 *
 	 */
 	public static class InMemoryStoreImpl extends XFactoryExternalStore {
+		
+		public static void register() {
+			if (!containsFactory(InMemoryStoreImpl.class)) {
+				XFactoryRegistry.instance().register(new InMemoryStoreImpl());
+			}
+		}
 
 		private final InMemoryStore attributeStore;
 
