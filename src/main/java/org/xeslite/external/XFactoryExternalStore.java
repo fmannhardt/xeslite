@@ -42,7 +42,6 @@ import com.google.common.collect.ImmutableList;
  * <li>{@link MapDBDiskImpl}
  * <li>{@link MapDBDiskWithoutCacheImpl}
  * <li>{@link MapDBDiskSequentialAccessImpl}
- * <li>{@link MapDBDiskSequentialAccessWithoutCacheImpl}
  * <li>{@link InMemoryStoreImpl}
  * </ul>
  * <p>
@@ -70,8 +69,8 @@ public abstract class XFactoryExternalStore implements XFactory {
 				XFactoryRegistry.instance().register(new MapDBDiskImpl());
 			}
 		}
-		
-		private final Builder dbBuilder;		
+
+		private final Builder dbBuilder;
 		private ExternalStore attributeStore;
 
 		public MapDBDiskImpl() {
@@ -84,17 +83,17 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		public MapDBDiskImpl(MapDBStore.Builder dbBuilder) {
 			super();
-			this.dbBuilder = dbBuilder;			
+			this.dbBuilder = dbBuilder;
 		}
 
 		@Override
 		protected synchronized final ExternalStore getStore() {
 			if (attributeStore != null) {
-				return attributeStore;	
+				return attributeStore;
 			} else {
 				attributeStore = dbBuilder.build();
 				return attributeStore;
-			}			
+			}
 		}
 
 		@Override
@@ -168,9 +167,6 @@ public abstract class XFactoryExternalStore implements XFactory {
 	 * A XES Factory that stores XAttributes with MapDB on disk. This version is
 	 * optimized for sequential access of events, performance will degraded when
 	 * using random-access methods of XTrace.
-	 * <p>
-	 * This version does store common attributes like 'concept:name',
-	 * 'lifecycle:transition', 'time:timestamp' in memory.
 	 * 
 	 * @author F. Mannhardt
 	 * 
@@ -202,93 +198,22 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		@Override
 		public String getDescription() {
-			return "A XES Factory that stores XAttributes with MapDB on disk. This version is optimized for sequential access of events, performance will degraded when using random-access methods of XTrace. "
-					+ "This version does store common attributes like 'concept:name', 'lifecycle:transition', 'time:timestamp' in memory. ";
+			return "A XES Factory that stores XAttributes with MapDB on disk. This version is optimized for sequential access of events, performance will degraded when using random-access methods of XTrace.";
 		}
 
 		@Override
 		public XTrace createTrace() {
-			return new XTraceCompressedExternalImpl(true, getStore());
+			return new XTraceCompressedExternalImpl(getStore());
 		}
 
 		@Override
 		public XTrace createTrace(XAttributeMap attributes) {
-			return new XTraceCompressedExternalImpl(true, attributes, getStore());
+			return new XTraceCompressedExternalImpl(attributes, getStore());
 		}
 
 		@Override
 		public XTrace createTrace(Collection<XEvent> events) {
-			return new XTraceCompressedExternalImpl(true, getStore(), events);
-		}
-
-		@Override
-		public XEvent createEvent() {
-			return new XEventCachingExternalImpl(getStore());
-		}
-
-		@Override
-		public XEvent createEvent(XAttributeMap attributes) {
-			return new XEventCachingExternalImpl(attributes, getStore());
-		}
-
-	}
-
-	/**
-	 * A XES Factory that stores XAttributes with MapDB on disk. This version is
-	 * optimized for sequential access of events, performance will degraded when
-	 * using random-access methods of XTrace.
-	 * <p>
-	 * This version does <b>NOT</b> store common attributes like 'concept:name',
-	 * 'lifecycle:transition', 'time:timestamp' in memory.
-	 * 
-	 * @author F. Mannhardt
-	 * 
-	 */
-	public static class MapDBDiskSequentialAccessWithoutCacheImpl extends MapDBDiskSequentialAccessImpl {
-
-		public static void register() {
-			if (!containsFactory(MapDBDiskSequentialAccessWithoutCacheImpl.class)) {
-				XFactoryRegistry.instance().register(new MapDBDiskSequentialAccessWithoutCacheImpl());
-			}
-		}
-
-		public MapDBDiskSequentialAccessWithoutCacheImpl() {
-			super();
-		}
-
-		public MapDBDiskSequentialAccessWithoutCacheImpl(Builder dbBuilder) {
-			super(dbBuilder);
-		}
-
-		public MapDBDiskSequentialAccessWithoutCacheImpl(MapDBDatabase database) {
-			super(database);
-		}
-
-		@Override
-		public String getName() {
-			return "XESLite: MapDB Optimized for memory & sequential access";
-		}
-
-		@Override
-		public String getDescription() {
-			return "A XES Factory that stores XAttributes with MapDB on disk."
-					+ " This version is optimized for sequential access of events, performance will degraded when using random-access methods of XTrace."
-					+ " This version does NOT store common attributes like 'concept:name', 'lifecycle:transition', 'time:timestamp' in memory.";
-		}
-
-		@Override
-		public XTrace createTrace() {
-			return new XTraceCompressedExternalImpl(false, getStore());
-		}
-
-		@Override
-		public XTrace createTrace(XAttributeMap attributes) {
-			return new XTraceCompressedExternalImpl(false, attributes, getStore());
-		}
-
-		@Override
-		public XTrace createTrace(Collection<XEvent> events) {
-			return new XTraceCompressedExternalImpl(false, getStore(), events);
+			return new XTraceCompressedExternalImpl(getStore(), events);
 		}
 
 		@Override
@@ -304,6 +229,23 @@ public abstract class XFactoryExternalStore implements XFactory {
 	}
 
 	/**
+	 * Same as {@link MapDBDiskSequentialAccessImpl}.
+	 * 
+	 * @author F. Mannhardt
+	 * 
+	 */
+	@Deprecated
+	public static class MapDBDiskSequentialAccessWithoutCacheImpl extends MapDBDiskSequentialAccessImpl {
+
+		public static void register() {
+			if (!containsFactory(MapDBDiskSequentialAccessWithoutCacheImpl.class)) {
+				XFactoryRegistry.instance().register(new MapDBDiskSequentialAccessWithoutCacheImpl());
+			}
+		}
+
+	}
+
+	/**
 	 * A XES factory that stores the attributes in an optimized column-format in
 	 * the heap memory. This factory requires all attributes to have a
 	 * consistent type across the whole event log.
@@ -312,7 +254,7 @@ public abstract class XFactoryExternalStore implements XFactory {
 	 *
 	 */
 	public static class InMemoryStoreImpl extends XFactoryExternalStore {
-		
+
 		public static void register() {
 			if (!containsFactory(InMemoryStoreImpl.class)) {
 				XFactoryRegistry.instance().register(new InMemoryStoreImpl());
@@ -328,32 +270,32 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		@Override
 		public XTrace createTrace() {
-			return new XTraceCompressedExternalImpl(true, getStore());
+			return new XTraceCompressedExternalImpl(getStore());
 		}
 
 		@Override
 		public XTrace createTrace(XAttributeMap attributes) {
-			return new XTraceCompressedExternalImpl(true, attributes, getStore());
+			return new XTraceCompressedExternalImpl(attributes, getStore());
 		}
 
 		@Override
 		public XTrace createTrace(Collection<XEvent> events) {
-			return new XTraceCompressedExternalImpl(true, getStore(), events);
+			return new XTraceCompressedExternalImpl(getStore(), events);
 		}
 
 		@Override
 		public XEvent createEvent() {
-			return new XEventCachingExternalImpl(getStore());
+			return new XEventBareExternalImpl(getStore());
 		}
 
 		@Override
 		XEvent openEvent(long externalId) {
-			return new XEventCachingExternalImpl(externalId, null, getStore());
+			return new XEventBareExternalImpl(externalId, null, getStore());
 		}
 
 		@Override
 		public XEvent createEvent(XAttributeMap attributes) {
-			return new XEventCachingExternalImpl(attributes, getStore());
+			return new XEventBareExternalImpl(attributes, getStore());
 		}
 
 		@Override
@@ -480,7 +422,7 @@ public abstract class XFactoryExternalStore implements XFactory {
 	}
 
 	XLog openLog(long externalId) {
-		return new XLogExternalImpl(externalId, null, getStore(), ImmutableList.<XTrace> of(), true);
+		return new XLogExternalImpl(externalId, null, getStore(), ImmutableList.<XTrace>of(), true);
 	}
 
 	@Override

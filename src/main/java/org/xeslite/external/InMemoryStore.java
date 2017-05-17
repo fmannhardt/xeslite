@@ -1382,7 +1382,7 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 	public InMemoryStore() {
 		super();
 		this.idFactory = new IdFactorySeq(0);
-		this.keyPool = new StringPoolCASImpl(Integer.MAX_VALUE);
+		this.keyPool = new KeyPoolCASImpl();
 		this.literalPool = new StringPoolCASImpl(Integer.MAX_VALUE);
 		this.store = new AttributeStoreImpl(BLOCK_SIZE, INITITAL_BLOCK_COUNT, literalPool);
 	}
@@ -1393,7 +1393,7 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 
 	@Override
 	protected final XAttributeMap createAttributeMap(ExternalAttributable attributable) {
-		return new ExternalAttributeMapCaching(attributable, new InMemoryAttributeMap(attributable, this));
+		return new InMemoryAttributeMap(attributable, this); // InMemory does not require cache
 	}
 
 	/**
@@ -1408,7 +1408,6 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 		public void pumpAttributes(XAttributable attributable, List<XAttribute> attributes) {
 			if (attributable instanceof ExternalAttributable) {
 				if (!attributes.isEmpty()) {
-					cacheIfCacheable(attributable, attributes);
 					fillBuffer(attributable, attributes);
 				}
 			} else {
@@ -1432,22 +1431,6 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 				ExternalAttribute externalAttribute = XAttributeExternalImpl.convert(InMemoryStore.this, owner,
 						attribute);
 				buffer.put(externalAttribute.getInternalKey(), externalAttribute);
-			}
-		}
-
-		private void cacheIfCacheable(XAttributable attributable, List<XAttribute> attributes) {
-			// Handle caching of attribute as we are by-passing the usual adding of attributes
-			// This is done on the adding thread to avoid race conditions  
-			if (attributable instanceof AttributesCacheable) {
-				for (Iterator<XAttribute> iterator = attributes.iterator(); iterator.hasNext();) {
-					XAttribute a = iterator.next();
-					AttributesCacheable cacheable = (AttributesCacheable) attributable;
-					Integer cacheIndex = cacheable.getCacheIndex(a.getKey());
-					if (cacheIndex != null) {
-						cacheable.setCacheValue(cacheIndex, a);
-						iterator.remove();
-					}
-				}
 			}
 		}
 

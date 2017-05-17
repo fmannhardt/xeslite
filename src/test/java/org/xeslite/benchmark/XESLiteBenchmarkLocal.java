@@ -169,7 +169,7 @@ public class XESLiteBenchmarkLocal {
 			printResult(logName, "XL-DB", benchmarkLog(path, new FactoryLogLoader(new XFactoryLoader() {
 
 				public XFactory newFactory() {
-					return new XFactoryExternalStore.MapDBDiskSequentialAccessWithoutCacheImpl(getNoCacheBuilder());
+					return new XFactoryExternalStore.MapDBDiskSequentialAccessImpl(getNoCacheBuilder());
 				}
 			})));
 		} catch (Exception | OutOfMemoryError e) {
