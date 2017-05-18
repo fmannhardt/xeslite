@@ -904,7 +904,11 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 		}
 
 		private AttributeStorage getAttributeStorage(int attributeKey, ExternalAttribute attribute) {
-			return store.getStorage(attributeKey, attribute.getClass(), attribute.getExtension());
+			if (attribute != null) {
+				return store.getStorage(attributeKey, attribute.getClass(), attribute.getExtension());
+			} else {
+				return store.getStorage(attributeKey);
+			}
 		}
 
 		private AttributeStorage getStorage(int attributeKey) {
@@ -966,21 +970,28 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 		@Override
 		public ExternalAttribute putValue(int attributeKey, long objectKey, ExternalAttribute value) {
 			AttributeStorage storage = getAttributeStorage(attributeKey, value);
-			ExternalAttribute oldValue = null;
-			if (storage.getVolume().hasValue(objectKey)) {
-				oldValue = retrieveValue(objectKey, storage);
-			}
-			if (value != null) {
-				storeValue(attributeKey, objectKey, storage, value);
+			if (storage != null) {
+				ExternalAttribute oldValue = null;
+				if (storage.getVolume().hasValue(objectKey)) {
+					oldValue = retrieveValue(objectKey, storage);
+				}
+				if (value != null) {
+					storeValue(attributeKey, objectKey, storage, value);
+				} else {
+					storage.getVolume().remove(objectKey);
+				}
+				return oldValue;
 			} else {
-				storage.getVolume().remove(objectKey);
+				return null;
 			}
-			return oldValue;
 		}
 
 		@Override
 		public void setValue(int attributeKey, long objectKey, ExternalAttribute value) {
-			storeValue(attributeKey, objectKey, getAttributeStorage(attributeKey, value), value);
+			AttributeStorage attributeStorage = getAttributeStorage(attributeKey, value);
+			if (attributeStorage != null) {
+				storeValue(attributeKey, objectKey, attributeStorage, value);	
+			}
 		}
 
 		@Override
