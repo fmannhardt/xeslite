@@ -188,7 +188,8 @@ public class XESLiteBenchmarkLocal {
 		} catch (Exception | OutOfMemoryError e) {
 			System.out.println(String.format("\"XL-IM\",\"%s\",-,-,-,-,-,-,-", logName));
 		}
-
+		
+		
 		try {
 			printResult(logName, "XL-AT", benchmarkLog(path, new DFALogLoader()));
 		} catch (Exception | OutOfMemoryError e) {

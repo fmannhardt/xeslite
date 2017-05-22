@@ -53,7 +53,7 @@ import net.jpountz.lz4.LZ4Factory;
  * @author F. Mannhardt
  * 
  */
-public final class InMemoryStore extends ExternalStoreAbstract {
+public class InMemoryStore extends ExternalStoreAbstract {
 
 	static final class Store implements Iterable<AttributeStorage> {
 
@@ -1392,7 +1392,7 @@ public final class InMemoryStore extends ExternalStoreAbstract {
 	}
 
 	@Override
-	protected final XAttributeMap createAttributeMap(ExternalAttributable attributable) {
+	protected XAttributeMap createAttributeMap(ExternalAttributable attributable) {
 		return new ExternalAttributeMapCaching(attributable, new InMemoryAttributeMap(attributable, this));
 	}
 

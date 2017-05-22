@@ -70,8 +70,8 @@ public abstract class XFactoryExternalStore implements XFactory {
 				XFactoryRegistry.instance().register(new MapDBDiskImpl());
 			}
 		}
-		
-		private final Builder dbBuilder;		
+
+		private final Builder dbBuilder;
 		private ExternalStore attributeStore;
 
 		public MapDBDiskImpl() {
@@ -84,17 +84,17 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		public MapDBDiskImpl(MapDBStore.Builder dbBuilder) {
 			super();
-			this.dbBuilder = dbBuilder;			
+			this.dbBuilder = dbBuilder;
 		}
 
 		@Override
 		protected synchronized final ExternalStore getStore() {
 			if (attributeStore != null) {
-				return attributeStore;	
+				return attributeStore;
 			} else {
 				attributeStore = dbBuilder.build();
 				return attributeStore;
-			}			
+			}
 		}
 
 		@Override
@@ -312,7 +312,7 @@ public abstract class XFactoryExternalStore implements XFactory {
 	 *
 	 */
 	public static class InMemoryStoreImpl extends XFactoryExternalStore {
-		
+
 		public static void register() {
 			if (!containsFactory(InMemoryStoreImpl.class)) {
 				XFactoryRegistry.instance().register(new InMemoryStoreImpl());
@@ -385,7 +385,15 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		public InMemoryStoreAlignmentAwareImpl() {
 			super();
-			attributeStore = new InMemoryStore();
+			attributeStore = new InMemoryStore() {
+
+				@Override
+				protected XAttributeMap createAttributeMap(ExternalAttributable attributable) {
+					// we require the caching mechanism
+					return new ExternalAttributeMapCaching(attributable, new InMemoryAttributeMap(attributable, this));
+				}
+
+			};
 		}
 
 		@Override
@@ -480,7 +488,7 @@ public abstract class XFactoryExternalStore implements XFactory {
 	}
 
 	XLog openLog(long externalId) {
-		return new XLogExternalImpl(externalId, null, getStore(), ImmutableList.<XTrace> of(), true);
+		return new XLogExternalImpl(externalId, null, getStore(), ImmutableList.<XTrace>of(), true);
 	}
 
 	@Override
