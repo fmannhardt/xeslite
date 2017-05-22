@@ -904,7 +904,11 @@ public class InMemoryStore extends ExternalStoreAbstract {
 		}
 
 		private AttributeStorage getAttributeStorage(int attributeKey, ExternalAttribute attribute) {
-			return store.getStorage(attributeKey, attribute.getClass(), attribute.getExtension());
+			if (attribute != null) {
+				return store.getStorage(attributeKey, attribute.getClass(), attribute.getExtension());
+			} else {
+				return store.getStorage(attributeKey);
+			}
 		}
 
 		private AttributeStorage getStorage(int attributeKey) {
@@ -966,21 +970,28 @@ public class InMemoryStore extends ExternalStoreAbstract {
 		@Override
 		public ExternalAttribute putValue(int attributeKey, long objectKey, ExternalAttribute value) {
 			AttributeStorage storage = getAttributeStorage(attributeKey, value);
-			ExternalAttribute oldValue = null;
-			if (storage.getVolume().hasValue(objectKey)) {
-				oldValue = retrieveValue(objectKey, storage);
-			}
-			if (value != null) {
-				storeValue(attributeKey, objectKey, storage, value);
+			if (storage != null) {
+				ExternalAttribute oldValue = null;
+				if (storage.getVolume().hasValue(objectKey)) {
+					oldValue = retrieveValue(objectKey, storage);
+				}
+				if (value != null) {
+					storeValue(attributeKey, objectKey, storage, value);
+				} else {
+					storage.getVolume().remove(objectKey);
+				}
+				return oldValue;
 			} else {
-				storage.getVolume().remove(objectKey);
+				return null;
 			}
-			return oldValue;
 		}
 
 		@Override
 		public void setValue(int attributeKey, long objectKey, ExternalAttribute value) {
-			storeValue(attributeKey, objectKey, getAttributeStorage(attributeKey, value), value);
+			AttributeStorage attributeStorage = getAttributeStorage(attributeKey, value);
+			if (attributeStorage != null) {
+				storeValue(attributeKey, objectKey, attributeStorage, value);	
+			}
 		}
 
 		@Override
@@ -1382,7 +1393,7 @@ public class InMemoryStore extends ExternalStoreAbstract {
 	public InMemoryStore() {
 		super();
 		this.idFactory = new IdFactorySeq(0);
-		this.keyPool = new StringPoolCASImpl(Integer.MAX_VALUE);
+		this.keyPool = new KeyPoolCASImpl();
 		this.literalPool = new StringPoolCASImpl(Integer.MAX_VALUE);
 		this.store = new AttributeStoreImpl(BLOCK_SIZE, INITITAL_BLOCK_COUNT, literalPool);
 	}
@@ -1393,7 +1404,7 @@ public class InMemoryStore extends ExternalStoreAbstract {
 
 	@Override
 	protected XAttributeMap createAttributeMap(ExternalAttributable attributable) {
-		return new ExternalAttributeMapCaching(attributable, new InMemoryAttributeMap(attributable, this));
+		return new InMemoryAttributeMap(attributable, this); // InMemory does not require cache
 	}
 
 	/**
@@ -1408,7 +1419,6 @@ public class InMemoryStore extends ExternalStoreAbstract {
 		public void pumpAttributes(XAttributable attributable, List<XAttribute> attributes) {
 			if (attributable instanceof ExternalAttributable) {
 				if (!attributes.isEmpty()) {
-					cacheIfCacheable(attributable, attributes);
 					fillBuffer(attributable, attributes);
 				}
 			} else {
@@ -1432,22 +1442,6 @@ public class InMemoryStore extends ExternalStoreAbstract {
 				ExternalAttribute externalAttribute = XAttributeExternalImpl.convert(InMemoryStore.this, owner,
 						attribute);
 				buffer.put(externalAttribute.getInternalKey(), externalAttribute);
-			}
-		}
-
-		private void cacheIfCacheable(XAttributable attributable, List<XAttribute> attributes) {
-			// Handle caching of attribute as we are by-passing the usual adding of attributes
-			// This is done on the adding thread to avoid race conditions  
-			if (attributable instanceof AttributesCacheable) {
-				for (Iterator<XAttribute> iterator = attributes.iterator(); iterator.hasNext();) {
-					XAttribute a = iterator.next();
-					AttributesCacheable cacheable = (AttributesCacheable) attributable;
-					Integer cacheIndex = cacheable.getCacheIndex(a.getKey());
-					if (cacheIndex != null) {
-						cacheable.setCacheValue(cacheIndex, a);
-						iterator.remove();
-					}
-				}
 			}
 		}
 

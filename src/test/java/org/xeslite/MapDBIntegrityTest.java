@@ -54,11 +54,6 @@ public class MapDBIntegrityTest {
 		testIntegrity(new XFactoryExternalStore.MapDBDiskSequentialAccessImpl());
 	}
 
-	@Test
-	public void testIntegrityMapDBDiskLowMemoryWithoutCache() {
-		testIntegrity(new XFactoryExternalStore.MapDBDiskSequentialAccessWithoutCacheImpl());
-	}
-
 	public void testIntegrity(XFactory factory) {
 		testIntegrity(factory, true);
 	}

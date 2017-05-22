@@ -17,22 +17,19 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 	interface Compressor {
 
 		int decompress(byte[] compressedData, byte[] uncompressedBuffer, int srcOff, int destOff, int destLen);
-		
+
 		byte[] decompress(byte[] compressedData, int uncompressedSize);
 
 		int compress(byte[] data, int srcOff, int srcLen, byte[] dest, int destOff);
-		
+
 		byte[] compress(byte[] compressedData);
 
 		int maxCompressedSize(int length);
-
-	
 
 	}
 
 	static final class EventData {
 		long[] ids;
-		ByteBuffer[] data;
 
 		EventData() {
 			this(0);
@@ -41,7 +38,6 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 		EventData(int size) {
 			super();
 			ids = new long[size];
-			data = new ByteBuffer[size];
 		}
 	}
 
@@ -160,26 +156,19 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 
 	};
 
-	private final int payloadSize;
-
 	private byte[] compressedData;
 	private int size;
 
-	public XAbstractCompressedList(int payloadSize) {
-		this.payloadSize = payloadSize;
+	public XAbstractCompressedList() {
 		this.compressedData = null;
 		this.size = 0;
 	}
 
-	abstract protected E newInstance(int index, long id, ByteBuffer data);
-
-	abstract protected E convertElement(E e);
+	abstract protected E newInstance(int index, long id);
 
 	abstract protected long getExternalId(E e);
 
 	abstract protected int getIdShift();
-
-	abstract protected ByteBuffer convertData(E e);
 
 	protected ByteBuffer getCompressedIds() {
 		return ByteBuffer.wrap(compressedData);
@@ -194,27 +183,25 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 	}
 
 	private E doGet(int index, EventData eventData) {
-		return newInstance(index, eventData.ids[index], eventData.data[index]);
+		return newInstance(index, eventData.ids[index]);
 	}
 
 	public E set(int index, E element) {
 		if (index < 0 || index >= size()) {
 			throw new IndexOutOfBoundsException();
 		}
-		E newElement = convertElement(element);
 
 		EventData eventData = getEventData();
 
 		E oldElement = doGet(index, eventData);
 
-		setEventData(doSet(index, newElement, eventData));
+		setEventData(doSet(index, element, eventData));
 
 		return oldElement;
 	}
 
 	private EventData doSet(int index, E newElement, EventData eventData) {
 		eventData.ids[index] = getExternalId(newElement);
-		eventData.data[index] = convertData(newElement);
 		return eventData;
 	}
 
@@ -231,11 +218,8 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 	}
 
 	private EventData doAdd(int index, E element, EventData eventData) {
-		E newElement = convertElement(element);
 		System.arraycopy(eventData.ids, index, eventData.ids, index + 1, size - index);
-		System.arraycopy(eventData.data, index, eventData.data, index + 1, size - index);
-
-		eventData = doSet(index, newElement, eventData);
+		eventData = doSet(index, element, eventData);
 		size++;
 		return eventData;
 	}
@@ -253,14 +237,11 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 		EventData eventData = resizeIfNeeded(size + collectionSize, getEventData());
 
 		System.arraycopy(eventData.ids, index, eventData.ids, index + collectionSize, size - index);
-		System.arraycopy(eventData.data, index, eventData.data, index + collectionSize, size - index);
 
 		int i = 0;
 		for (Iterator<? extends E> iterator = c.iterator(); iterator.hasNext(); i++) {
 			E element = iterator.next();
-			E newElement = convertElement(element);
-			eventData.ids[index + i] = getExternalId(newElement);
-			eventData.data[index + i] = convertData(newElement);
+			eventData.ids[index + i] = getExternalId(element);
 		}
 		size += collectionSize;
 
@@ -296,13 +277,11 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 		int tailLength = size - index - 1;
 		if (tailLength > 0) {
 			System.arraycopy(eventData.ids, index + 1, eventData.ids, index, tailLength);
-			System.arraycopy(eventData.data, index + 1, eventData.data, index, tailLength);
 		}
 
 		// Change size and set last entry to zero
 		--size;
 		eventData.ids[size] = 0;
-		eventData.data[size] = null;
 
 		return eventData;
 	}
@@ -338,23 +317,13 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 			lastId = id;
 
 			buffer.putLong(delta);
-			if (hasPayload()) {
-				assert eventData.data[i].remaining() == payloadSize;
-				buffer.put(eventData.data[i]);
-				// Reset original byte buffer
-				eventData.data[i].position(0);
-			}
 		}
 		buffer.flip();
 		return buffer;
 	}
 
-	protected final boolean hasPayload() {
-		return payloadSize != 0;
-	}
-
 	private final int uncompressedSize() {
-		return size * (Longs.BYTES + payloadSize);
+		return size * Longs.BYTES;
 	}
 
 	private final EventData decodeFromBytes(ByteBuffer uncompressedData) {
@@ -363,20 +332,10 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 		long lastId = 0;
 
 		for (int i = 0; i < size; i++) {
-
 			// Delta decode
 			long newId = uncompressedData.getLong() + lastId;
 			eventData.ids[i] = newId << getIdShift();
 			lastId = newId;
-
-			if (hasPayload()) {
-				// Use shared array
-				ByteBuffer payload = uncompressedData.slice();
-				payload.limit(payload.position() + payloadSize);
-				eventData.data[i] = payload;
-				uncompressedData.position(uncompressedData.position() + payloadSize);
-			}
-
 		}
 
 		return eventData;
@@ -384,22 +343,10 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 
 	private static EventData resizeIfNeeded(int requiredCapacity, EventData data) {
 		data.ids = resizeIfNeeded(requiredCapacity, data.ids);
-		data.data = resizeIfNeeded(requiredCapacity, data.data);
 		return data;
 	}
 
 	private static long[] resizeIfNeeded(int requiredCapacity, long[] array) {
-		if (requiredCapacity > array.length) {
-			int newCapacity = Math.max(10, 2 * array.length);
-			if (newCapacity < requiredCapacity) {
-				newCapacity = requiredCapacity;
-			}
-			array = Arrays.copyOf(array, newCapacity);
-		}
-		return array;
-	}
-
-	private static ByteBuffer[] resizeIfNeeded(int requiredCapacity, ByteBuffer[] array) {
 		if (requiredCapacity > array.length) {
 			int newCapacity = Math.max(10, 2 * array.length);
 			if (newCapacity < requiredCapacity) {

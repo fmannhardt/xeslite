@@ -169,7 +169,7 @@ public class XESLiteBenchmarkLocal {
 			printResult(logName, "XL-DB", benchmarkLog(path, new FactoryLogLoader(new XFactoryLoader() {
 
 				public XFactory newFactory() {
-					return new XFactoryExternalStore.MapDBDiskSequentialAccessWithoutCacheImpl(getNoCacheBuilder());
+					return new XFactoryExternalStore.MapDBDiskSequentialAccessImpl(getNoCacheBuilder());
 				}
 			})));
 		} catch (Exception | OutOfMemoryError e) {
@@ -188,8 +188,7 @@ public class XESLiteBenchmarkLocal {
 		} catch (Exception | OutOfMemoryError e) {
 			System.out.println(String.format("\"XL-IM\",\"%s\",-,-,-,-,-,-,-", logName));
 		}
-		
-		
+
 		try {
 			printResult(logName, "XL-AT", benchmarkLog(path, new DFALogLoader()));
 		} catch (Exception | OutOfMemoryError e) {

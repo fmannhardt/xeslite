@@ -42,7 +42,6 @@ import com.google.common.collect.ImmutableList;
  * <li>{@link MapDBDiskImpl}
  * <li>{@link MapDBDiskWithoutCacheImpl}
  * <li>{@link MapDBDiskSequentialAccessImpl}
- * <li>{@link MapDBDiskSequentialAccessWithoutCacheImpl}
  * <li>{@link InMemoryStoreImpl}
  * </ul>
  * <p>
@@ -168,9 +167,6 @@ public abstract class XFactoryExternalStore implements XFactory {
 	 * A XES Factory that stores XAttributes with MapDB on disk. This version is
 	 * optimized for sequential access of events, performance will degraded when
 	 * using random-access methods of XTrace.
-	 * <p>
-	 * This version does store common attributes like 'concept:name',
-	 * 'lifecycle:transition', 'time:timestamp' in memory.
 	 * 
 	 * @author F. Mannhardt
 	 * 
@@ -202,93 +198,22 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		@Override
 		public String getDescription() {
-			return "A XES Factory that stores XAttributes with MapDB on disk. This version is optimized for sequential access of events, performance will degraded when using random-access methods of XTrace. "
-					+ "This version does store common attributes like 'concept:name', 'lifecycle:transition', 'time:timestamp' in memory. ";
+			return "A XES Factory that stores XAttributes with MapDB on disk. This version is optimized for sequential access of events, performance will degraded when using random-access methods of XTrace.";
 		}
 
 		@Override
 		public XTrace createTrace() {
-			return new XTraceCompressedExternalImpl(true, getStore());
+			return new XTraceCompressedExternalImpl(getStore());
 		}
 
 		@Override
 		public XTrace createTrace(XAttributeMap attributes) {
-			return new XTraceCompressedExternalImpl(true, attributes, getStore());
+			return new XTraceCompressedExternalImpl(attributes, getStore());
 		}
 
 		@Override
 		public XTrace createTrace(Collection<XEvent> events) {
-			return new XTraceCompressedExternalImpl(true, getStore(), events);
-		}
-
-		@Override
-		public XEvent createEvent() {
-			return new XEventCachingExternalImpl(getStore());
-		}
-
-		@Override
-		public XEvent createEvent(XAttributeMap attributes) {
-			return new XEventCachingExternalImpl(attributes, getStore());
-		}
-
-	}
-
-	/**
-	 * A XES Factory that stores XAttributes with MapDB on disk. This version is
-	 * optimized for sequential access of events, performance will degraded when
-	 * using random-access methods of XTrace.
-	 * <p>
-	 * This version does <b>NOT</b> store common attributes like 'concept:name',
-	 * 'lifecycle:transition', 'time:timestamp' in memory.
-	 * 
-	 * @author F. Mannhardt
-	 * 
-	 */
-	public static class MapDBDiskSequentialAccessWithoutCacheImpl extends MapDBDiskSequentialAccessImpl {
-
-		public static void register() {
-			if (!containsFactory(MapDBDiskSequentialAccessWithoutCacheImpl.class)) {
-				XFactoryRegistry.instance().register(new MapDBDiskSequentialAccessWithoutCacheImpl());
-			}
-		}
-
-		public MapDBDiskSequentialAccessWithoutCacheImpl() {
-			super();
-		}
-
-		public MapDBDiskSequentialAccessWithoutCacheImpl(Builder dbBuilder) {
-			super(dbBuilder);
-		}
-
-		public MapDBDiskSequentialAccessWithoutCacheImpl(MapDBDatabase database) {
-			super(database);
-		}
-
-		@Override
-		public String getName() {
-			return "XESLite: MapDB Optimized for memory & sequential access";
-		}
-
-		@Override
-		public String getDescription() {
-			return "A XES Factory that stores XAttributes with MapDB on disk."
-					+ " This version is optimized for sequential access of events, performance will degraded when using random-access methods of XTrace."
-					+ " This version does NOT store common attributes like 'concept:name', 'lifecycle:transition', 'time:timestamp' in memory.";
-		}
-
-		@Override
-		public XTrace createTrace() {
-			return new XTraceCompressedExternalImpl(false, getStore());
-		}
-
-		@Override
-		public XTrace createTrace(XAttributeMap attributes) {
-			return new XTraceCompressedExternalImpl(false, attributes, getStore());
-		}
-
-		@Override
-		public XTrace createTrace(Collection<XEvent> events) {
-			return new XTraceCompressedExternalImpl(false, getStore(), events);
+			return new XTraceCompressedExternalImpl(getStore(), events);
 		}
 
 		@Override
@@ -299,6 +224,23 @@ public abstract class XFactoryExternalStore implements XFactory {
 		@Override
 		public XEvent createEvent(XAttributeMap attributes) {
 			return new XEventBareExternalImpl(attributes, getStore());
+		}
+
+	}
+
+	/**
+	 * Same as {@link MapDBDiskSequentialAccessImpl}.
+	 * 
+	 * @author F. Mannhardt
+	 * 
+	 */
+	@Deprecated
+	public static class MapDBDiskSequentialAccessWithoutCacheImpl extends MapDBDiskSequentialAccessImpl {
+
+		public static void register() {
+			if (!containsFactory(MapDBDiskSequentialAccessWithoutCacheImpl.class)) {
+				XFactoryRegistry.instance().register(new MapDBDiskSequentialAccessWithoutCacheImpl());
+			}
 		}
 
 	}
@@ -328,32 +270,32 @@ public abstract class XFactoryExternalStore implements XFactory {
 
 		@Override
 		public XTrace createTrace() {
-			return new XTraceCompressedExternalImpl(true, getStore());
+			return new XTraceCompressedExternalImpl(getStore());
 		}
 
 		@Override
 		public XTrace createTrace(XAttributeMap attributes) {
-			return new XTraceCompressedExternalImpl(true, attributes, getStore());
+			return new XTraceCompressedExternalImpl(attributes, getStore());
 		}
 
 		@Override
 		public XTrace createTrace(Collection<XEvent> events) {
-			return new XTraceCompressedExternalImpl(true, getStore(), events);
+			return new XTraceCompressedExternalImpl(getStore(), events);
 		}
 
 		@Override
 		public XEvent createEvent() {
-			return new XEventCachingExternalImpl(getStore());
+			return new XEventBareExternalImpl(getStore());
 		}
 
 		@Override
 		XEvent openEvent(long externalId) {
-			return new XEventCachingExternalImpl(externalId, null, getStore());
+			return new XEventBareExternalImpl(externalId, null, getStore());
 		}
 
 		@Override
 		public XEvent createEvent(XAttributeMap attributes) {
-			return new XEventCachingExternalImpl(attributes, getStore());
+			return new XEventBareExternalImpl(attributes, getStore());
 		}
 
 		@Override
