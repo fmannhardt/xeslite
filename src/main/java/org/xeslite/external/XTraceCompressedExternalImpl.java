@@ -61,20 +61,35 @@ final class XTraceCompressedExternalImpl extends XAbstractCompressedList<XEvent>
 		addAll(events);
 	}
 
+	@Override
 	protected XEvent newInstance(final int index, final long id) {
 		return new XEventBareExternalImpl(id, null, store);
 	}
+	
+	@Override
+	protected XEvent convertElement(XEvent e) {
+		XEventBareExternalImpl newEvent;
+		if (!(e instanceof XEventBareExternalImpl)) {
+			newEvent = new XEventCachingExternalImpl(e.getAttributes(), store);
+		} else {
+			newEvent = (XEventBareExternalImpl) e;
+		}
+		return newEvent;
+	}	
 
+	@Override
 	protected long getExternalId(XEvent e) {
 		assert e instanceof XEventBareExternalImpl : "Invalid event " + e + " should be of class "
 				+ XEventBareExternalImpl.class.getSimpleName();
 		return ((XEventBareExternalImpl) e).getExternalId();
 	}
 
+	@Override
 	protected int getIdShift() {
 		return store.getIdFactory().getIdShift();
 	}
 
+	@Override
 	public long getExternalId() {
 		return id;
 	}

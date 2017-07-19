@@ -165,6 +165,8 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 	}
 
 	abstract protected E newInstance(int index, long id);
+	
+	abstract protected E convertElement(E e);
 
 	abstract protected long getExternalId(E e);
 
@@ -190,12 +192,13 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 		if (index < 0 || index >= size()) {
 			throw new IndexOutOfBoundsException();
 		}
-
+		E newElement = convertElement(element);
+		
 		EventData eventData = getEventData();
 
 		E oldElement = doGet(index, eventData);
 
-		setEventData(doSet(index, element, eventData));
+		setEventData(doSet(index, newElement, eventData));
 
 		return oldElement;
 	}
@@ -218,8 +221,9 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 	}
 
 	private EventData doAdd(int index, E element, EventData eventData) {
+		E newElement = convertElement(element);
 		System.arraycopy(eventData.ids, index, eventData.ids, index + 1, size - index);
-		eventData = doSet(index, element, eventData);
+		eventData = doSet(index, newElement, eventData);
 		size++;
 		return eventData;
 	}
@@ -241,7 +245,8 @@ abstract class XAbstractCompressedList<E> extends AbstractList<E> {
 		int i = 0;
 		for (Iterator<? extends E> iterator = c.iterator(); iterator.hasNext(); i++) {
 			E element = iterator.next();
-			eventData.ids[index + i] = getExternalId(element);
+			E newElement = convertElement(element);
+			eventData.ids[index + i] = getExternalId(newElement);
 		}
 		size += collectionSize;
 
